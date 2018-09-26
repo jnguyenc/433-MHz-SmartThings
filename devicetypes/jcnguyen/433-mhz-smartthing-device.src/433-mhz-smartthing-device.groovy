@@ -1,4 +1,5 @@
 def gatewayAddr = "192.168.1.28:8083"
+
 //	===========================================================
 metadata {
 	definition (name: "433 MHz SmartThing Device",
