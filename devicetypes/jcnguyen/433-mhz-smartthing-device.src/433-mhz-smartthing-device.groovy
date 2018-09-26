@@ -1,7 +1,7 @@
 def getGatewayAddr(){
 	// SmartThing does not support global variables.  Use this special Groovy method to set up one
 	// Called by gatewayAddr - no *get*, no *()*, captialized 1st letter after *get* in the method name becomes lowercased
-    // set IP:port appropriately
+	// set IP:port appropriately
 	return "192.168.1.28:8083"
 }
 
@@ -16,6 +16,8 @@ metadata {
 		capability "polling"
 		capability "Sensor"
 		capability "Actuator"
+        
+        command "syncFromGateway"
 	}
 	tiles(scale: 2) {
 		multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
@@ -31,11 +33,15 @@ metadata {
 		}
         
 		standardTile("refresh", "capability.refresh", width: 2, height: 2,  decoration: "flat") {
-			state "default", label:"Refresh", action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:"Update Gateway", action:"refresh.refresh", icon:"st.secondary.refresh"
+		}
+		
+		standardTile("syncFromGateway", "device.syncFromGateway", width: 2, height: 2,  decoration: "flat") {
+			state "default", label:"Sync from Gateway", action:"syncFromGateway", icon:"st.secondary.refresh"
 		}
         
 		main("switch")
-		details("switch", "refresh", "status")
+		details("switch", "refresh", "syncFromGateway")
 	}
 
 	def rates = [:]
@@ -111,9 +117,9 @@ def refresh(){
 	}
 }
 
-def getStatus(){
+def syncFromGateway(){
 	log.info "Device is $state.status. Getting Gateway Device status"
-	sendComtoGateway("getStatus")
+	sendCmdtoGateway("getStatus")
 }
 
 private sendCmdtoGateway(gatewayCommand){
@@ -181,6 +187,11 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 			}
 			else{
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
+                log.info "Syncing from Gateway..."
+                sendEvent(name: "switch", value: "$gatewayDeviceStatus")
+				sendEvent(name: "deviceMsg", value: "Synced $gatewayDeviceStatus")
+				state.status = "$gatewayDeviceStatus"
+                log.info "Synced $gatewayDeviceStatus from Gateway"
 			}
         break
 	}
