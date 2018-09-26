@@ -1,19 +1,19 @@
-Raspberry Pi
-Installation
-Raspbian using Etcher
+Raspberry Pi Installation
+
+Install Raspbian OS using Etcher
+Resource:
 https://www.raspberrypi.org/documentation/installation/installing-images/README.md
 https://www.losant.com/blog/getting-started-with-the-raspberry-pi-zero-w-without-a-monitor
 
 Enable SSH
-At the root directory, create a file called ssh. This file (no file extension needed) will enable SSH on the Pi.
-Or use Pi Configuration (requires monitor and keyboard)
+- After writting the image to the SD card, disconnect it from the PC and reconnect.  Open File Explorer. At the root directory, create a file named "ssh" (no quotes). This file (no file extension needed) will enable SSH on the Pi.
+- Or use Pi Configuration (requires monitor and keyboard)
+
 ssh pi@raspberrypi
 Default password is raspberry
+
 Enable WIFI
-
-Create a file called wpa_supplicant.conf . This is a configuration file that will allow you to pre-configure the WiFi credentials. On boot, the Pi will copy and use this as the default configuration file.
-
-In this file, place the following content:
+- Create a file named wpa_supplicant.conf at the root of the SD card. This is a configuration file that allows you to pre-configure the WiFi credentials. On boot, the Pi copies and uses it as the default configuration. In this file, place the following content:
 
 country=US
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
@@ -26,14 +26,15 @@ network={
  key_mgmt=WPA-PSK
 }
 
-https://www.losant.com/blog/getting-started-with-the-raspberry-pi-zero-w-without-a-monitor
+Resource: https://www.losant.com/blog/getting-started-with-the-raspberry-pi-zero-w-without-a-monitor
 
-Or with Monitor: set up Wifi - Network icon on the top right
+- Or use Pi Configuration (requires monitor and keyboard): set up Wifi - Network icon on the top right
 
 Disable WIFI
 To completely disable the onboard WiFi from the firmware on the Pi3, add
 dtoverlay=pi3-disable-wifi
 in /boot/config.txt.
+
 Change Password
 $ passwd
 
@@ -67,16 +68,14 @@ Sniff
 Set up Home Automation
 https://timleland.com/use-amazon-echo-to-control-wireless-power-outlets/
 
- To have ha-bridge start automaticall, setup Systemctl
-&nbsp;https://timleland.com/how-to-run-a-linux-program-on-startup/
+To have ha-bridge start automatically setup Systemctl
+Resource: https://timleland.com/how-to-run-a-linux-program-on-startup/
  
 NODE.JS NPM & PM2
-https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps
-
+Resource: https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps
 
 pi@raspberrypi:~ $PATH=$PATH:/opt/nodejs/lib/node_modules/pm2/bin/
 pi@raspberrypi:~ $ pm2 list
-
 
 Node JS
 $ sudo apt-get install -y nodejs
@@ -87,4 +86,3 @@ $npm install pm2@latest -g
 $pm2 start app.js
 $pm2 list
 $pm2 startup
-
