@@ -1,10 +1,15 @@
-def gatewayAddr = "192.168.1.28:8083"
+def getGatewayAddr(){
+	// SmartThing does not support global variables.  Use this special Groovy method to set up one
+	// Called by gatewayAddr - no *get*, no *()*, captialized 1st letter after *get* in the method name becomes lowercased
+    // set IP:port appropriately
+	return "192.168.1.28:8083"
+}
+
 //	===========================================================
 metadata {
 	definition (name: "433 MHz SmartThing Device",
 				namespace: "jcnguyen",
 				author: "John Nguyen",
-				gatewayAddr: "${gatewayAddr}",
 				energyMonitor: "Standard") {
 		capability "Switch"
 		capability "refresh"
@@ -56,7 +61,6 @@ def updated() {
 }
 
 def update() {
-	state.gatewayAddr = metadata.definition.gatewayAddr
     state.status = "off"
 	unschedule()
 	switch(refreshRate) {
@@ -114,11 +118,11 @@ def getStatus(){
 
 private sendCmdtoGateway(gatewayCommand){
     def headers = [:] 
-	headers.put("HOST", state.gatewayAddr)
+	headers.put("HOST", gatewayAddr)
 	headers.put("gateway-command", gatewayCommand)
 	headers.put("device-id", deviceID)
 	
-	log.info "Sending command to gateway: $gatewayCommand, $deviceID, ${state.gatewayAddr}"
+	log.info "Sending command to gateway: $gatewayCommand, $deviceID, $gatewayAddr"
     sendHubCommand(new physicalgraph.device.HubAction([
 		headers: headers],
 		device.deviceNetworkId,
