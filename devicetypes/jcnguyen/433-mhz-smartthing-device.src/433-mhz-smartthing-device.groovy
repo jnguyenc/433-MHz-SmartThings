@@ -33,11 +33,11 @@ metadata {
 		}
         
 		standardTile("refresh", "capability.refresh", width: 2, height: 2,  decoration: "flat") {
-			state "default", label:"Update Gateway", action:"refresh.refresh", icon:"st.secondary.refresh"
+			state "default", label:"Refresh Gateway", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
 		
 		standardTile("syncFromGateway", "device.syncFromGateway", width: 2, height: 2,  decoration: "flat") {
-			state "default", label:"Sync from Gateway", action:"syncFromGateway", icon:"st.secondary.refresh"
+			state "default", label:"Sync from Gateway", action:"syncFromGateway", icon:"st.Kids.kids8"
 		}
         
 		main("switch")
