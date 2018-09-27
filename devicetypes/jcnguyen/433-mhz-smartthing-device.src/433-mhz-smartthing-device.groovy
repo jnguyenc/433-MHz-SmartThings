@@ -53,6 +53,7 @@ metadata {
 
 	preferences {
 		input("deviceID", "text", title: "Device ID", required: true, displayDuringSetup: true)
+		input("gatewayAddress", "text", title: "Gateway Address", defaultValue: "192.168.1.28:8083", required: false, displayDuringSetup: true)
 		input name: "refreshRate", type: "enum", title: "Refresh Rate", options: rates, description: "Select Refresh Rate", required: false
 	}
 }
@@ -67,7 +68,6 @@ def updated() {
 }
 
 def update() {
-    state.status = "off"
 	unschedule()
 	switch(refreshRate) {
 		case "1":
@@ -98,18 +98,18 @@ void uninstalled() {
 
 //	===== Basic Plug Control/Status =====
 def on() {
-	log.info "Device is $state.status. Sending command setState-on"
+	log.info "Device is ${device.currentValue("switch")}. Sending command setState-on"
 	sendCmdtoGateway("setState-on")
 }
 
 def off() {
-	log.info "Device is $state.status. Sending command setState-off"
+	log.info "Device is ${device.currentValue("switch")}. Sending command setState-off"
 	sendCmdtoGateway("setState-off")
 }
 
 def refresh(){
-	log.info "Sending refresh..."
-	if( state.status == "on"){
+	log.info "Device is ${device.currentValue("switch")}. Sending refresh command."
+	if( device.currentValue("switch") == "on"){
 		on()
 	}
 	else{
@@ -118,7 +118,7 @@ def refresh(){
 }
 
 def syncFromGateway(){
-	log.info "Device is $state.status. Getting Gateway Device status"
+	log.info "Device is ${device.currentValue("switch")}. Getting Gateway Device status"
 	sendCmdtoGateway("getStatus")
 }
 
@@ -163,7 +163,6 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 				log.info "Device Status on: OK"
 				sendEvent(name: "switch", value: "on")
 				sendEvent(name: "deviceMsg", value: "Device Turned On: OK")
-				state.status = "on"
 			}
 			else{
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
@@ -174,14 +173,13 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 				log.info "Device Status off: OK"
 				sendEvent(name: "switch", value: "off")
 				sendEvent(name: "deviceMsg", value: "Device Turned Off: OK")
-				state.status = "off"
 			}
 			else{
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
 			}
         break
         case "getStatus":
-    		if(gatewayDeviceStatus == state.status){
+    		if(gatewayDeviceStatus == device.currentValue("switch")){
 				log.info "Device Status OK"
 				sendEvent(name: "deviceMsg", value: "Device Status: OK")
 			}
@@ -190,7 +188,6 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
                 log.info "Syncing from Gateway..."
                 sendEvent(name: "switch", value: "$gatewayDeviceStatus")
 				sendEvent(name: "deviceMsg", value: "Synced $gatewayDeviceStatus")
-				state.status = "$gatewayDeviceStatus"
                 log.info "Synced $gatewayDeviceStatus from Gateway"
 			}
         break
