@@ -192,7 +192,7 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
                 log.info "Syncing from Gateway..."
                 sendEvent(name: "switch", value: "$gatewayDeviceStatus")
-				sendEvent(name: "deviceMsg", value: "Synced $gatewayDeviceStatus")
+				sendEvent(name: "deviceMsg", value: "Synced from Gateway: ${gatewayDeviceStatus.toUpperCase()}")
                 log.info "Synced $gatewayDeviceStatus from Gateway"
 			}
         break
