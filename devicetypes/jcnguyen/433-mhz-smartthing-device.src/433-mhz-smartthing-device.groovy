@@ -123,12 +123,17 @@ def syncFromGateway(){
 }
 
 private sendCmdtoGateway(gatewayCommand){
-    def headers = [:] 
-	headers.put("HOST", gatewayAddr)
+    def headers = [:]
+	def ip_port = gatewayAddr
+	// user entered gateway address overrides global default value
+    if (gatewayAddress){
+		ip_port = gatewayAddress
+	}
+	headers.put("HOST", ip_port)
 	headers.put("gateway-command", gatewayCommand)
 	headers.put("device-id", deviceID)
 	
-	log.info "Sending command to gateway: $gatewayCommand, $deviceID, $gatewayAddr"
+	log.info "Sending command to gateway: $gatewayCommand, $deviceID, $ip_port"
     sendHubCommand(new physicalgraph.device.HubAction([
 		headers: headers],
 		device.deviceNetworkId,
