@@ -2,7 +2,7 @@ def getGatewayAddr(){
 	// SmartThing does not support global variables.  Use this special Groovy method to set up one
 	// Called by gatewayAddr - no *get*, no *()*, captialized 1st letter after *get* in the method name becomes lowercased
 	// set IP:port appropriately
-	return "192.168.1.28:8083"
+	return "192.168.1.28:8082"
 }
 
 //	===========================================================
@@ -98,13 +98,13 @@ void uninstalled() {
 
 //	===== Basic Plug Control/Status =====
 def on() {
-	log.info "Device is ${device.currentValue("switch")}. Sending command setState-on"
-	sendCmdtoGateway("setState-on")
+	log.info "Device is ${device.currentValue("switch")}. Sending command state-on"
+	sendCmdtoGateway("state-on")
 }
 
 def off() {
-	log.info "Device is ${device.currentValue("switch")}. Sending command setState-off"
-	sendCmdtoGateway("setState-off")
+	log.info "Device is ${device.currentValue("switch")}. Sending command state-off"
+	sendCmdtoGateway("state-off")
 }
 
 def refresh(){
@@ -119,10 +119,10 @@ def refresh(){
 
 def syncFromGateway(){
 	log.info "Device is ${device.currentValue("switch")}. Getting Gateway Device status"
-	sendCmdtoGateway("getStatus")
+	sendCmdtoGateway("status")
 }
 
-private sendCmdtoGateway(gatewayCommand){
+private sendCmdtoGateway(command){
     def headers = [:]
 	def ip_port = gatewayAddr
 	// user entered gateway address overrides global default value
@@ -130,22 +130,53 @@ private sendCmdtoGateway(gatewayCommand){
 		ip_port = gatewayAddress
 	}
 	headers.put("HOST", ip_port)
-	headers.put("gateway-command", gatewayCommand)
-	headers.put("device-id", deviceID)
-	
-	log.info "Sending command to gateway: $gatewayCommand, $deviceID, $ip_port"
-    sendHubCommand(new physicalgraph.device.HubAction([
-		headers: headers],
+	//headers.put("command", command)
+	//headers.put("dev_id", deviceID)//header name is forced to lowercase, so don't use uppercase letters
+    //compile data into one header
+    def request_data = '{"dev_id":"'+deviceID+'","command":"'+command+'"}'
+    headers.put("request_data", request_data)
+    
+	/*================================
+    log.info "data: $request_data"
+    def slurper = new groovy.json.JsonSlurper()
+    def result = slurper.parseText(request_data)
+ 	log.info "Result: $result.dev_id"
+    =====================================*/
+        
+	log.info "Sending command to gateway: $command, $deviceID, $ip_port"
+    sendHubCommand(new physicalgraph.device.HubAction(
+    	[headers: headers],
 		device.deviceNetworkId,
 		[callback: parseGatewayResponse]
 	))
 }
 
 def parseGatewayResponse(response){
-	def gatewayResponse = response.headers["gateway-response"]
-	def gatewayCommand = response.headers["gateway-commmand"]
-	def gatewayDeviceStatus = response.headers["gateway-device-status"]
+	//def gatewayResponse = response.headers["command_response"]
+	//def gatewayCommand = response.headers["command"]
+	//def gatewayDeviceStatus = response.headers["dev_status"]
+	def response_data = response.headers["response_data"]
 	
+	/*=============================================
+	def slurper = new groovy.json.JsonSlurper()
+ 	def result = slurper.parseText('{"person":{"name":"Guillaume","age":33,"pets":["dog","cat"]}}')
+ 	log.info "Result $result.person.name"
+    result.person.name = "John Nguyen"
+    log.info "Result $result.person.name"
+	==============================================*/
+	
+    def slurper = new groovy.json.JsonSlurper()
+ 	def result = slurper.parseText(response_data)
+ 	
+    def gatewayResponse = result.command_response
+	def gatewayCommand = result.command
+    
+    def gatewayDeviceStatus = "off"
+    if(result.dev_state){
+		gatewayDeviceStatus = "on"
+	}
+    log.info "Device state is $gatewayDeviceStatus"
+    
 	switch(gatewayResponse){
 		case "OK":
 			log.info "Gateway command processed successfully: $gatewayCommand"
@@ -163,7 +194,7 @@ def parseGatewayResponse(response){
 }
 private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
     switch(gatewayCommand){
-    	case "setState-on":
+    	case "state-on":
     		if(gatewayDeviceStatus == "on"){
 				log.info "Device Status on: OK"
 				sendEvent(name: "switch", value: "on")
@@ -173,7 +204,7 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
 			}
         break
-        case "setState-off":
+        case "state-off":
     		if(gatewayDeviceStatus == "off"){
 				log.info "Device Status off: OK"
 				sendEvent(name: "switch", value: "off")
@@ -183,10 +214,10 @@ private parsegatewayDeviceStatus(gatewayCommand, gatewayDeviceStatus){
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
 			}
         break
-        case "getStatus":
+        case "status":
     		if(gatewayDeviceStatus == device.currentValue("switch")){
-				log.info "Device Status OK"
-				sendEvent(name: "deviceMsg", value: "Device Status: OK")
+				log.info "Device Status Synced"
+				sendEvent(name: "deviceMsg", value: "Device Status: Synced")
 			}
 			else{
 				log.error "Something is not sync: $gatewayCommand $gatewayDeviceStatus"
