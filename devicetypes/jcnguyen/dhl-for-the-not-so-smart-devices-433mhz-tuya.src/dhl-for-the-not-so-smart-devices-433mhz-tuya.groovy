@@ -7,7 +7,7 @@ def getGatewayAddr(){
 
 //	===========================================================
 metadata {
-	definition (name: "433 MHz SmartThing Device",
+	definition (name: "DHL for the Not So Smart Devices (433mhz, Tuya)",
 				namespace: "jcnguyen",
 				author: "John Nguyen",
 				energyMonitor: "Standard") {
